@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>REBUILD 40</title>
+    <style>
+        :root {
+            --bg-color: #0d1117; --card-bg: #161b22; --accent: #58a6ff;
+            --star-5: #f9c74f; --star-4: #90be6d; --star-3: #58a6ff; --star-1: #8b949e;
+            --broadcast: #ffeb3b; --fail: #ff4d4d; --synergy-on: #aff5b4;
+        }
+        body { font-family: 'Pretendard', sans-serif; background-color: var(--bg-color); color: #c9d1d9; margin: 0; display: flex; flex-direction: column; align-items: center; }
+        #game-container { width: 95%; max-width: 1000px; padding: 20px; }
+        .header { text-align: center; border-bottom: 2px solid var(--accent); margin-bottom: 20px; padding-bottom: 10px; }
+        .broadcast-booth { background: #000; border-left: 5px solid var(--broadcast); padding: 15px; border-radius: 4px; color: var(--broadcast); font-weight: bold; text-align: center; font-style: italic; min-height: 24px; font-size: 1.1rem; box-shadow: 0 0 10px rgba(255, 235, 59, 0.1); }
+        .synergy-bar, .concept-bar { padding: 10px; margin-top: 5px; margin-bottom: 5px; border-radius: 4px; display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+        .synergy-bar { background: #161b22; border: 1px solid #30363d; }
+        .concept-bar { background: #0d1117; margin-bottom: 20px; }
+
+        .syn-tag, .concept-tag { 
+            position: relative; font-size: 0.75rem; padding: 4px 10px; border-radius: 15px; 
+            background: #161b22; color: #484f58; border: 1px solid #30363d; 
+            cursor: help; transition: 0.3s; 
+        }
+        .syn-tag.active { background: #1b4721; color: var(--synergy-on); border-color: #2ea043; font-weight: bold; }
+        .concept-tag.active { border-color: var(--accent); color: var(--accent); box-shadow: 0 0 8px rgba(88, 166, 255, 0.3); font-weight: bold; }
+
+        .tooltip {
+            visibility: hidden; width: 220px; background-color: #30363d; color: #fff; text-align: center;
+            border-radius: 6px; padding: 10px; position: absolute; z-index: 10; bottom: 130%; left: 50%;
+            transform: translateX(-50%); opacity: 0; transition: opacity 0.2s; font-weight: normal;
+            font-size: 0.75rem; line-height: 1.4; border: 1px solid var(--accent); pointer-events: none;
+        }
+        .syn-tag:hover .tooltip, .concept-tag:hover .tooltip { visibility: visible; opacity: 1; }
+
+        .status-panel { display: flex; justify-content: space-between; gap: 10px; margin-bottom: 20px; }
+        .stat-card { flex: 1; background: var(--card-bg); padding: 12px; border-radius: 10px; border: 1px solid #30363d; text-align: center; }
+        .stat-value { font-size: 1.4rem; font-weight: 800; display: block; color: #fff; }
+        
+        .scout-section { background: #1c2128; border-radius: 15px; padding: 20px; margin-bottom: 25px; border: 1px solid #30363d; }
+        .scout-grid { display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; min-height: 180px; }
+        .player-card { background: #21262d; border: 1px solid #484f58; border-radius: 12px; width: 210px; padding: 15px; cursor: pointer; transition: 0.2s; position: relative; }
+        .player-card:hover { transform: translateY(-5px); border-color: var(--accent); background: #30363d; }
+        .player-card.disabled { opacity: 0.3; cursor: not-allowed; filter: grayscale(0.8); }
+        .player-card.star-4 { border: 2px solid var(--star-4); }
+        .player-card.star-5 { border: 2px solid var(--star-5); box-shadow: 0 0 15px rgba(249, 199, 79, 0.2); }
+        
+        .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px; font-size: 0.75rem; background: rgba(0,0,0,0.4); padding: 8px; border-radius: 6px; margin-top: 10px; }
+        .stat-val { color: #fff; font-weight: bold; float: right; }
+        
+        .lineup-board { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 20px; }
+        .slot { background: var(--card-bg); border: 1px solid #30363d; padding: 10px; border-radius: 8px; text-align: center; font-size: 0.8rem; }
+        .slot.filled { border-bottom: 3px solid var(--accent); }
+        
+        #result-screen { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.98); z-index: 2000; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 20px; }
+        button { padding: 12px 25px; background: #21262d; color: #fff; border: 1px solid #484f58; cursor: pointer; border-radius: 6px; font-weight: bold; }
+        button:hover { background: var(--accent); border-color: #fff; }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <div class="header">
+        <h1>REBUILDING 40</h1>
+        <p>팀 시너지 & 팀 컨셉 툴팁 가이드</p>
+    </div>
+
+    <div class="broadcast-booth" id="broadcast-msg">"단장님, 팀을 재건할 시간입니다."</div>
+    <div class="synergy-bar" id="synergy-display"></div>
+    <div class="concept-bar" id="concept-display"></div>
+
+    <div class="status-panel">
+        <div class="stat-card">남은 기회<span id="turn-display" class="stat-value">25</span></div>
+        <div class="stat-card">남은 예산<span id="cost-display" class="stat-value">40</span></div>
+        <div class="stat-card">진행도<span id="pos-display" class="stat-value">0 / 12</span></div>
+    </div>
+
+    <div class="scout-section">
+        <h3 style="text-align:center; margin-top: 0;">영입 포지션: <span id="target-pos" style="color:var(--accent)">-</span></h3>
+        <div id="scout-grid" class="scout-grid"></div>
+        <div style="text-align:center; margin-top: 20px;">
+            <button id="skip-btn" onclick="skipRound()">현재 리포트 넘기기 (기회 -1)</button>
+        </div>
+    </div>
+
+    <div class="lineup-board" id="lineup-board"></div>
+</div>
+
+<div id="result-screen">
+    <h1 id="result-rank" style="font-size: 8rem; margin: 0; color: var(--star-5);"></h1>
+    <h2 id="result-score" style="margin-bottom: 10px;"></h2>
+    <p id="result-desc" style="max-width: 600px; font-size: 1.2rem; line-height: 1.6; color: #c9d1d9; margin-bottom: 30px;"></p>
+    <button onclick="location.reload()">새 시즌 시작</button>
+</div>
+
+<script>
+// --- 240인 전체 로스터 (포지션별 20명 고유 이름) ---
+const DB = {
+    "선발": [
+        {name: "환인", star: 5, s: [99,97,95,94,96]}, {name: "해모수", star: 5, s: [96,98,94,97,95]}, {name: "마고할미", star: 5, s: [98,96,92,95,97]}, {name: "치우천왕", star: 5, s: [97,99,90,92,98]},
+        {name: "청룡", star: 4, s: [90,92,88,94,91]}, {name: "백호", star: 4, s: [93,88,90,89,92]}, {name: "주작", star: 4, s: [91,91,89,90,92]}, {name: "현무", star: 4, s: [89,93,92,88,90]},
+        {name: "삼족오", star: 3, s: [85,88,82,84,86]}, {name: "해태", star: 3, s: [82,85,88,81,83]}, {name: "기린", star: 3, s: [84,82,85,86,84]}, {name: "불가사리", star: 3, s: [88,80,82,85,87]}, {name: "이무기", star: 3, s: [83,86,84,88,80]}, {name: "웅녀", star: 3, s: [81,84,86,83,85]},
+        {name: "도깨비", star: 1, s: [70,75,68,65,72]}, {name: "그슨새", star: 1, s: [72,68,70,66,69]}, {name: "두억시니", star: 1, s: [65,70,72,60,65]}, {name: "장산범", star: 1, s: [68,65,60,70,68]}, {name: "어둑시니", star: 1, s: [60,62,65,68,70]}, {name: "달걀귀신", star: 1, s: [66,64,68,62,65]}
+    ],
+    "불펜": [
+        {name: "강림도령", star: 5, s: [75,98,96,94,97]}, {name: "해원맥", star: 5, s: [72,99,95,93,98]}, {name: "이덕춘", star: 5, s: [70,97,98,95,96]}, {name: "염라대왕", star: 5, s: [74,98,94,92,99]},
+        {name: "바리공주", star: 4, s: [68,95,92,90,91]}, {name: "자청비", star: 4, s: [70,94,89,92,93]}, {name: "오늘이", star: 4, s: [65,96,90,88,94]}, {name: "한락궁이", star: 4, s: [67,93,91,95,90]},
+        {name: "가믄장아기", star: 3, s: [65,90,85,82,88]}, {name: "대별왕", star: 3, s: [60,88,84,90,85]}, {name: "소별왕", star: 3, s: [62,86,88,85,82]}, {name: "성주신", star: 3, s: [64,88,82,84,86]}, {name: "조왕신", star: 3, s: [63,85,85,86,83]}, {name: "측신", star: 3, s: [61,87,83,85,88]},
+        {name: "터주대감", star: 1, s: [58,82,75,68,70]}, {name: "업신", star: 1, s: [60,78,70,65,68]}, {name: "문전신", star: 1, s: [55,80,72,60,65]}, {name: "삼신할미", star: 1, s: [58,75,68,62,70]}, {name: "철융신", star: 1, s: [52,78,65,64,66]}, {name: "오방신장", star: 1, s: [54,76, 66,62,68]}
+    ],
+    "마무리": [
+        {name: "용왕", star: 5, s: [65,99,99,95,98]}, {name: "옥황상제", star: 5, s: [62,98,98,97,99]}, {name: "북두칠성", star: 5, s: [60,99,97,98,96]}, {name: "사천왕", star: 5, s: [64,97,99,96,98]},
+        {name: "구미호", star: 4, s: [60,95,94,92,93]}, {name: "거구귀", star: 4, s: [58,96,92,91,95]}, {name: "묘두사", star: 4, s: [59,94,95,90,94]}, {name: "불개", star: 4, s: [61,95,93,92,92]},
+        {name: "강철이", star: 3, s: [55,90,88,85,86]}, {name: "창귀", star: 3, s: [60,88,85,84,88]}, {name: "그슨대", star: 3, s: [58,92,82,80,85]}, {name: "노인성", star: 3, s: [55,94,84,82,83]}, {name: "산신", star: 3, s: [58,91,85,86,84]}, {name: "수노궁", star: 3, s: [60,89,86,83,85]},
+        {name: "물귀신", star: 1, s: [50,82,75,68,70]}, {name: "처녀귀신", star: 1, s: [52,80,72,65,68]}, {name: "몽달귀신", star: 1, s: [55,78,70,60,62]}, {name: "달걀신", star: 1, s: [50,75,68,64,66]}, {name: "손각시", star: 1, s: [52,72,65,62,68]}, {name: "야광귀", star: 1, s: [50,74,66,60,65]}
+    ],
+    "포수": [{name: "백호령", star: 5, s: [90,95,50,99,99]}, {name: "천룡왕", star: 5, s: [88,94,55,98,98]}, {name: "거북선", star: 5, s: [85,96,52,97,99]}, {name: "바위장군", star: 5, s: [92,92,48,99,97]}, {name: "금강신", star: 4, s: [85,92,52,94,92]}, {name: "수문장", star: 4, s: [82,90,58,92,95]}, {name: "철갑귀", star: 4, s: [80,94,50,95,93]}, {name: "옹헤야", star: 4, s: [84,88,55,93,94]}, {name: "탈바가지", star: 3, s: [75,70,50,88,85]}, {name: "장승", star: 3, s: [72,75,45,85,88]}, {name: "솟대", star: 3, s: [78,68,48,90,82]}, {name: "돌하르방", star: 3, s: [70,72,52,82,90]}, {name: "석굴암", star: 3, s: [74,74,50,85,85]}, {name: "갓바위", star: 3, s: [71,71,51,83,83]}, {name: "옹기신", star: 1, s: [60,65,42,75,72]}, {name: "짚신", star: 1, s: [55,55,40,78,65]}, {name: "허수아비", star: 1, s: [58,60,45,70,70]}, {name: "멍석", star: 1, s: [52,58,48,68,68]}, {name: "키걸이", star: 1, s: [50,52,40,65,60]}, {name: "빗자루", star: 1, s: [54,54,44,62,64]}],
+    "1루수": [{name: "박혁거세알", star: 5, s: [98,99,55,90,85]}, {name: "금와왕", star: 5, s: [96,98,60,92,88]}, {name: "수로왕릉", star: 5, s: [95,99,58,91,86]}, {name: "단군성조", star: 5, s: [94,98,62,89,89]}, {name: "천제", star: 4, s: [85,95,50,85,80]}, {name: "대붕", star: 4, s: [82,92,55,82,82]}, {name: "거인족", star: 4, s: [80,94,52,80,84]}, {name: "지리산신", star: 4, s: [84,90,58,88,85]}, {name: "산신령", star: 3, s: [75,85,45,80,78]}, {name: "토지신", star: 3, s: [78,82,40,82,75]}, {name: "가람신", star: 3, s: [72,80,48,78,72]}, {name: "목신", star: 3, s: [70,88,42,75,70]}, {name: "바위신", star: 3, s: [74,84,45,79,79]}, {name: "불신", star: 3, s: [71,81, 41, 76, 76]}, {name: "풀각시", star: 1, s: [60,75, 40,65,60]}, {name: "여우비", star: 1, s: [62,70, 42,62,58]}, {name: "도깨비불", star: 1, s: [58,72, 45, 60, 55]}, {name: "서낭당", star: 1, s: [55,68, 40, 58, 52]}, {name: "당산나무", star: 1, s: [52,65, 38, 55, 50]}, {name: "바람막이", star: 1, s: [50,60, 35, 50, 48]}],
+};
+
+["2루수", "3루수", "유격수", "좌익수", "중견수", "우익수", "지명타자"].forEach(pos => {
+    let names = {
+        "2루수": ["축지법", "번개장군", "비형랑", "두두리", "길달", "쾌도", "질풍", "비호", "표운", "대해", "파랑", "거품", "방울", "구슬", "먼지", "티끌", "안개", "이슬", "서리", "눈꽃"],
+        "3루수": ["천둥", "벼락", "우뢰", "우박", "태풍", "폭풍", "해일", "지진", "화산", "용암", "불기둥", "철퇴", "방패", "투구", "갑옷", "검기", "창술", "궁술", "기마", "보루"],
+        "유격수": ["미리내", "은하수", "무지개", "오로라", "별똥별", "북극성", "견우", "직녀", "선녀", "나무꾼", "달토끼", "옥토끼", "계수나무", "두꺼비", "지네", "거미", "전갈", "지렁이", "메뚜기", "매미"],
+        "좌익수": ["저승사자", "판관", "귀졸", "나찰", "아귀", "귀면", "야차", "그림자", "환영", "미로", "함정", "어둠", "심연", "지옥", "황천", "나루터", "강물", "모래", "자갈", "흙"],
+        "중견수": ["구름", "바람", "햇살", "달빛", "별빛", "노을", "새벽", "아침", "정오", "저녁", "자정", "봄", "여름", "가을", "겨울", "천기", "지기", "인기", "신기", "영기"],
+        "우익수": ["금동", "옥동", "칠성신", "남두육성", "삼태성", "직성", "태양신", "달신", "물신", "흙신", "나무신", "쇠신", "바위령", "바다령", "하늘령", "땅령", "숲령", "꽃령", "풀령", "씨앗"],
+        "지명타자": ["천하대장군", "지하실상장군", "백두산호랑이", "동해용왕", "서해용왕", "남해용왕", "북해용왕", "용태자", "이시미", "강철", "꽝철", "영노", "비비", "불가사리", "해태왕", "기린왕", "봉황", "청조", "백조", "흑조"]
+    };
+    DB[pos] = [];
+    for(let i=0; i<20; i++){
+        // 조건 변경: 3성 구간을 줄이고, 2성 구간(3명)을 생성하도록 세분화
+        let star = i<4 ? 5 : i<8 ? 4 : i<11 ? 3 : i<14 ? 2 : 1;
+        let baseS = star === 5 ? 90 : star === 4 ? 82 : star === 3 ? 75 : star === 2 ? 68 : 60;
+        DB[pos].push({ name: names[pos][i], star: star, s: [baseS+Math.random()*10, baseS+Math.random()*10, baseS+Math.random()*10, baseS+Math.random()*10, baseS+Math.random()*10].map(v=>Math.floor(v)) });
+    }
+});
+
+const SYNERGIES = [
+    { id: 1, name: "좌우 균형", desc: "좌익수/우익수 모두 4성 이상 (+5)", check: (l) => l["좌익수"]?.star >= 4 && l["우익수"]?.star >= 4, score: 5 },
+    { id: 2, name: "철벽 내야", desc: "1/2/3루수, 유격수 수비 평균 77 이상 (+7)", check: (l) => (l["1루수"] && l["2루수"] && l["3루수"] && l["유격수"]) && (l["1루수"].s[3] + l["2루수"].s[3] + l["3루수"].s[3] + l["유격수"].s[3])/4 >= 77, score: 7 },
+    { id: 3, name: "거포 군단", desc: "파워 80 이상 타자 3명 이상 (+6)", check: (l) => Object.values(l).filter(p => p.s[1] >= 80).length >= 3, score: 6 },
+    { id: 4, name: "가성비 장인", desc: "1성 선수 4명 이상 포함 (+8)", check: (l) => Object.values(l).filter(p => p.star === 1).length >= 4, score: 8 },
+    { id: 5, name: "파이어볼러", desc: "선발 및 마무리 구속 90 이상 (+5)", check: (l) => l["선발"]?.s[1] >= 90 && l["마무리"]?.s[1] >= 90, score: 5 },
+    { id: 6, name: "베테랑의 품격", desc: "5성 선수 3명 이상 (+10)", check: (l) => Object.values(l).filter(p => p.star === 5).length >= 3, score: 10 },
+    { id: 7, name: "안방 마님", desc: "포수 정교 및 수비 81 이상 (+4)", check: (l) => l["포수"]?.s[0] >= 81 && l["포수"]?.s[3] >= 81, score: 4 },
+    { id: 8, name: "소총 부대", desc: "정교함 77 이상 타자 5명 이상 (+6)", check: (l) => Object.values(l).filter(p => p.s[0] >= 77).length >= 5, score: 6 },
+    { id: 11, name: "지옥의 문", desc: "마무리 제구 또는 구속 90 이상 (+5)", check: (l) => l["마무리"]?.s[0] >= 90 || l["마무리"]?.s[1] >= 90, score: 5 },
+    { id: 13, name: "센터라인", desc: "포수/유격수/2루수/중견수 수비 평균 72 이상 (+7)", check: (l) => (l["포수"] && l["유격수"] && l["2루수"] && l["중견수"]) && (l["포수"].s[3] + l["유격수"].s[3] + l["2루수"].s[3] + l["중견수"].s[3])/4 >= 72, score: 7 },
+    { id: 15, name: "짠물 야구", desc: "선발/불펜/마무리 제구 평균 82 이상 (+6)", check: (l) => (l["선발"] && l["불펜"] && l["마무리"]) && (l["선발"].s[0] + l["불펜"].s[0] + l["마무리"].s[0])/3 >= 82, score: 6 }
+];
+
+const CONCEPTS = [
+    { id: 'c1', name: "🚀 빅볼 거포군단", desc: "파워 77 이상 타자가 3명 이상일 때 발동", check: (l) => {
+        let hitters = Object.keys(l).filter(p => !["선발","불펜","마무리"].includes(p));
+        return hitters.filter(k => l[k].s[1] >= 77).length >= 3;
+    }},
+    { id: 'c2', name: "🏃 스몰볼 기동력", desc: "주력 77 이상 타자가 3명 이상일 때 발동", check: (l) => {
+        let hitters = Object.keys(l).filter(p => !["선발","불펜","마무리"].includes(p));
+        return hitters.filter(k => l[k].s[2] >= 77).length >= 3;
+    }},
+    { id: 'c3', name: "🎯 짠물 투수진", desc: "투수진(3명) 제구 평균 85 이상 확보 시 발동", check: (l) => {
+        let p = ["선발","불펜","마무리"].filter(pos => l[pos]);
+        return p.length === 3 && (p.reduce((a,k)=>a+l[k].s[0],0)/3) >= 85;
+    }},
+    { id: 'c4', name: "💎 개천에서 난 용", desc: "평균 능력치 67 이상인 1성 선수가 1명이라도 있으면 발동", check: (l) => {
+        return Object.values(l).filter(p => p.star === 1 && (p.s.reduce((a,b)=>a+b)/5) >= 67).length >= 1;
+    }},
+    { id: 'c5', name: "🤝 완벽한 조직력", desc: "일반 시너지 3개 이상 동시 활성화 시 발동", check: (l) => SYNERGIES.filter(s => s.check(l)).length >= 3 },
+    { id: 'c6', 
+    name: "💰 가성비 마법사", 
+    desc: "1~2성 선수를 6명 이상 기용하고 팀 평균 전력 70 이상 달성", 
+    check: (l) => {
+        let players = Object.values(l);
+        if(players.length < 12) return false;
+        
+        // 1. 1성 또는 2성 선수 숫자 카운트
+        let lowStarCount = players.filter(p => p.star <= 2).length;
+        
+        // 2. 팀 평균 능력치 계산
+        let avg = players.reduce((acc, p) => acc + (p.s.reduce((a,b)=>a+b)/5), 0) / 12;
+        
+        // 3. 조건: 저성급 6명 이상 AND 평균 70점 이상
+        return lowStarCount >= 6 && avg >= 70;
+    }}
+];
+const SCOUT_ORDER = ["선발", "불펜", "마무리", "포수", "1루수", "2루수", "3루수", "유격수", "좌익수", "중견수", "우익수", "지명타자"];
+const STAT_LABELS = { p: ["제구", "구속", "체력", "변화", "구위"], b: ["정교", "파워", "주력", "수비", "어깨"] };
+
+let lineup = {}; let currentCost = 0; let turnsLeft = 25; let currentIndex = 0;
+
+function init() {
+    const board = document.getElementById('lineup-board'); board.innerHTML = '';
+    SCOUT_ORDER.forEach(pos => {
+        const div = document.createElement('div'); div.className = 'slot'; div.id = `slot-${pos}`;
+        div.innerHTML = `<div style="color:var(--accent); font-weight:bold;">${pos}</div><div id="name-${pos}" style="color:#555;">-</div>`;
+        board.appendChild(div);
+    });
+
+    const synBar = document.getElementById('synergy-display'); synBar.innerHTML = '';
+    SYNERGIES.forEach(syn => {
+        const span = document.createElement('span'); span.className = 'syn-tag'; span.id = `syn-${syn.id}`;
+        span.innerHTML = `${syn.name}<span class="tooltip">${syn.desc}</span>`;
+        synBar.appendChild(span);
+    });
+
+    const conBar = document.getElementById('concept-display'); conBar.innerHTML = '';
+    CONCEPTS.forEach(con => {
+        const span = document.createElement('span'); span.className = 'concept-tag'; span.id = `con-${con.id}`;
+        span.innerHTML = `${con.name}<span class="tooltip">${con.desc}</span>`;
+        conBar.appendChild(span);
+    });
+    updateUI();
+    generateScout();
+}
+
+function updateUI() {
+    document.getElementById('turn-display').innerText = turnsLeft;
+    document.getElementById('cost-display').innerText = 40 - currentCost;
+    document.getElementById('pos-display').innerText = `${currentIndex} / 12`;
+    SYNERGIES.forEach(syn => {
+        const el = document.getElementById(`syn-${syn.id}`);
+        if (syn.check(lineup)) el.classList.add('active'); else el.classList.remove('active');
+    });
+    CONCEPTS.forEach(con => {
+        const el = document.getElementById(`con-${con.id}`);
+        if (con.check(lineup)) el.classList.add('active'); else el.classList.remove('active');
+    });
+    if (currentIndex < 12) {
+        if ((40 - currentCost) < (12 - currentIndex)) failGame("예산 부족!");
+        else if (turnsLeft < (12 - currentIndex)) failGame("기회 부족!");
+    }
+}
+
+function generateScout() {
+    if (currentIndex >= 12) return;
+    const pos = SCOUT_ORDER[currentIndex];
+    document.getElementById('target-pos').innerText = pos;
+    const grid = document.getElementById('scout-grid'); grid.innerHTML = '';
+    let pool = DB[pos] || [];
+    let selected = [];
+    let tempPool = [...pool];
+    for(let i=0; i<3; i++) {
+        let idx = Math.floor(Math.random() * tempPool.length);
+        selected.push(tempPool.splice(idx, 1)[0]);
+    }
+    const labs = ["선발", "불펜", "마무리"].includes(pos) ? STAT_LABELS.p : STAT_LABELS.b;
+    selected.forEach(p => {
+        const card = document.createElement('div');
+        const can = (40 - currentCost - p.star) >= (12 - currentIndex - 1);
+        card.className = `player-card star-${p.star} ${!can ? 'disabled' : ''}`;
+        let sH = ''; p.s.forEach((v, i) => sH += `<div>${labs[i]}<span class="stat-val">${v}</span></div>`);
+        card.innerHTML = `<div style="font-size:1.05rem; font-weight:800; margin-bottom:8px;">${p.name} <span style="float:right; color:var(--star-${p.star});">★${p.star}</span></div><div class="stats-grid">${sH}</div>`;
+        if (can) card.onclick = () => recruit(pos, p);
+        grid.appendChild(card);
+    });
+}
+
+function recruit(pos, p) {
+    p.pos = pos; lineup[pos] = p; currentCost += p.star; turnsLeft--; currentIndex++;
+    document.getElementById(`slot-${pos}`).className = 'slot filled';
+    document.getElementById(`name-${pos}`).innerText = p.name;
+    document.getElementById(`name-${pos}`).style.color = "#fff";
+    updateUI();
+    if (currentIndex < 12) generateScout(); else finishGame();
+}
+
+function skipRound() { 
+    if (turnsLeft > (12 - currentIndex)) { 
+        turnsLeft--; 
+        updateUI(); 
+        if (currentIndex < 12) generateScout(); 
+    } else {
+        failGame("선수 영입 실패!");
+    }
+}
+
+function failGame(r) { 
+    document.getElementById('result-screen').style.display = 'flex'; 
+    document.getElementById('result-rank').innerText = "F"; 
+    document.getElementById('result-score').innerText = r;
+    document.getElementById('result-desc').innerText = "팀 구성에 실패했습니다. 당신은 경질되었습니다.";
+}
+
+function finishGame() {
+    const resScreen = document.getElementById('result-screen');
+    resScreen.style.display = 'flex';
+    resScreen.style.overflowY = 'auto';
+
+    // 점수 계산 산식
+    let totalStat = 0;
+    Object.values(lineup).forEach(p => { totalStat += (p.s.reduce((a,b)=>a+b)/5); });
+    let physicalScore = (totalStat / 12) * 0.5; 
+    let activeSyns = SYNERGIES.filter(s => s.check(lineup));
+    let synBonus = activeSyns.reduce((a,b)=>a+b.score, 0) * 1.5; // 가산치 조정
+    let activeConcepts = CONCEPTS.filter(c => c.check(lineup));
+    let conceptBonus = activeConcepts.length * 15; // 개당 15점
+    let budgetBonus = (40 - currentCost) * 1.2;
+
+    let final = (physicalScore + synBonus + conceptBonus + budgetBonus).toFixed(1);
+
+    // 최종 로스터 UI 생성
+    let lineupHTML = `<div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:8px; margin: 15px 0; background:rgba(255,255,255,0.05); padding:12px; border-radius:8px; width:100%; max-width:550px;">`;
+    SCOUT_ORDER.forEach(pos => {
+        const p = lineup[pos];
+        lineupHTML += `
+            <div style="font-size:0.8rem; border-bottom:1px solid #333; padding:4px; text-align:left;">
+                <span style="color:var(--accent); font-weight:bold;">${pos}</span><br>
+                <span style="color:#fff;">${p.name}</span> 
+                <span style="color:var(--star-${p.star}); font-size:0.7rem;">★${p.star}</span>
+            </div>`;
+    });
+    lineupHTML += `</div>`;
+    
+    // 3. 결과 출력
+    let rank = "", desc = "";
+    if (final >= 175) {        rank = "S"; desc = "역사에 남을 '드림팀'입니다! 완벽한 시너지와 컨셉, 압도적인 피지컬까지 갖춘 이 팀은 전무후무한 기록을 세울 것입니다."; }
+    else if (final >= 155) { rank = "A"; desc = "강력한 우승 후보입니다. 선수들 간의 조화가 뛰어나며, 단장님의 뛰어난 안목이 돋보이는 명문 구단의 탄생입니다."; }
+    else if (final >= 130) { rank = "B"; desc = "포스트시즌 진출이 가능한 탄탄한 팀입니다. 몇몇 핵심 포지션의 활약이 기대되는 경쟁력 있는 로스터입니다."; }
+    else if (final >= 110) { rank = "C"; desc = "재건 중인 팀의 모습입니다. 가능성은 보이지만, 상위권으로 도약하기 위해서는 조금 더 보완이 필요해 보입니다."; }
+    else { rank = "D"; desc = "리빌딩 대실패로 혹혹한 시즌이 예상됩니다. 팬들의 불만이 폭주하고 있습니다."; }
+
+    resScreen.innerHTML = `
+        <h1 id="result-rank" style="font-size: 6rem; margin: 0; color: var(--star-5);">${rank}</h1>
+        <h2 style="margin: 0;">최종 점수: ${final}</h2>
+        <p style="color:var(--synergy-on); font-weight:bold;">활성 컨셉: ${activeConcepts.length}개 / 시너지: ${activeSyns.length}개</p>
+        ${lineupHTML}
+        <p style="max-width: 600px; font-size: 1.1rem; line-height: 1.6; color: #c9d1d9; margin-bottom: 20px;">${desc}</p>
+        <button onclick="location.reload()" style="padding:15px 40px; font-size:1.1rem;">새 시즌 시작</button>
+    `;
+}
+
+init();
+</script>
+</body>
+</html>
