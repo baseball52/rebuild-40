@@ -7,7 +7,7 @@
     <style>
         :root {
             --bg-color: #0d1117; --card-bg: #161b22; --accent: #58a6ff;
-            --star-5: #f9c74f; --star-4: #90be6d; --star-3: #58a6ff; --star-1: #8b949e;
+            --star-5: #f9c74f; --star-4: #90be6d; --star-3: #58a6ff; --star-2: #a371f7; --star-1: #8b949e;
             --broadcast: #ffeb3b; --fail: #ff4d4d; --synergy-on: #aff5b4;
         }
         body { font-family: 'Pretendard', sans-serif; background-color: var(--bg-color); color: #c9d1d9; margin: 0; display: flex; flex-direction: column; align-items: center; }
@@ -43,6 +43,9 @@
         .player-card { background: #21262d; border: 1px solid #484f58; border-radius: 12px; width: 210px; padding: 15px; cursor: pointer; transition: 0.2s; position: relative; }
         .player-card:hover { transform: translateY(-5px); border-color: var(--accent); background: #30363d; }
         .player-card.disabled { opacity: 0.3; cursor: not-allowed; filter: grayscale(0.8); }
+        .player-card.star-1 { border: 1px solid var(--star-1); }
+        .player-card.star-2 { border: 1px solid var(--star-2); box-shadow: 0 0 10px rgba(163, 113, 247, 0.15); }
+        .player-card.star-3 { border: 1px solid var(--star-3); }
         .player-card.star-4 { border: 2px solid var(--star-4); }
         .player-card.star-5 { border: 2px solid var(--star-5); box-shadow: 0 0 15px rgba(249, 199, 79, 0.2); }
         
@@ -100,25 +103,41 @@ const DB = {
     "선발": [
         {name: "환인", star: 5, s: [99,97,95,94,96]}, {name: "해모수", star: 5, s: [96,98,94,97,95]}, {name: "마고할미", star: 5, s: [98,96,92,95,97]}, {name: "치우천왕", star: 5, s: [97,99,90,92,98]},
         {name: "청룡", star: 4, s: [90,92,88,94,91]}, {name: "백호", star: 4, s: [93,88,90,89,92]}, {name: "주작", star: 4, s: [91,91,89,90,92]}, {name: "현무", star: 4, s: [89,93,92,88,90]},
-        {name: "삼족오", star: 3, s: [85,88,82,84,86]}, {name: "해태", star: 3, s: [82,85,88,81,83]}, {name: "기린", star: 3, s: [84,82,85,86,84]}, {name: "불가사리", star: 3, s: [88,80,82,85,87]}, {name: "이무기", star: 3, s: [83,86,84,88,80]}, {name: "웅녀", star: 3, s: [81,84,86,83,85]},
+        {name: "삼족오", star: 3, s: [85,88,82,84,86]}, {name: "해태", star: 3, s: [82,85,88,81,83]}, {name: "기린", star: 3, s: [84,82,85,86,84]}, 
+        {name: "불가사리", star: 2, s: [74,72,70,75,71]}, {name: "이무기", star: 2, s: [72,75,71,73,70]}, {name: "웅녀", star: 2, s: [71,73,74,70,72]},
         {name: "도깨비", star: 1, s: [70,75,68,65,72]}, {name: "그슨새", star: 1, s: [72,68,70,66,69]}, {name: "두억시니", star: 1, s: [65,70,72,60,65]}, {name: "장산범", star: 1, s: [68,65,60,70,68]}, {name: "어둑시니", star: 1, s: [60,62,65,68,70]}, {name: "달걀귀신", star: 1, s: [66,64,68,62,65]}
     ],
     "불펜": [
         {name: "강림도령", star: 5, s: [75,98,96,94,97]}, {name: "해원맥", star: 5, s: [72,99,95,93,98]}, {name: "이덕춘", star: 5, s: [70,97,98,95,96]}, {name: "염라대왕", star: 5, s: [74,98,94,92,99]},
         {name: "바리공주", star: 4, s: [68,95,92,90,91]}, {name: "자청비", star: 4, s: [70,94,89,92,93]}, {name: "오늘이", star: 4, s: [65,96,90,88,94]}, {name: "한락궁이", star: 4, s: [67,93,91,95,90]},
-        {name: "가믄장아기", star: 3, s: [65,90,85,82,88]}, {name: "대별왕", star: 3, s: [60,88,84,90,85]}, {name: "소별왕", star: 3, s: [62,86,88,85,82]}, {name: "성주신", star: 3, s: [64,88,82,84,86]}, {name: "조왕신", star: 3, s: [63,85,85,86,83]}, {name: "측신", star: 3, s: [61,87,83,85,88]},
-        {name: "터주대감", star: 1, s: [58,82,75,68,70]}, {name: "업신", star: 1, s: [60,78,70,65,68]}, {name: "문전신", star: 1, s: [55,80,72,60,65]}, {name: "삼신할미", star: 1, s: [58,75,68,62,70]}, {name: "철융신", star: 1, s: [52,78,65,64,66]}, {name: "오방신장", star: 1, s: [54,76, 66,62,68]}
+        {name: "가믄장아기", star: 3, s: [65,90,85,82,88]}, {name: "대별왕", star: 3, s: [60,88,84,90,85]}, {name: "소별왕", star: 3, s: [62,86,88,85,82]}, 
+        {name: "성주신", star: 2, s: [64,74,72,71,73]}, {name: "조왕신", star: 2, s: [63,72,75,70,71]}, {name: "측신", star: 2, s: [61,75,70,72,74]},
+        {name: "터주대감", star: 1, s: [58,82,75,68,70]}, {name: "업신", star: 1, s: [60,78,70,65,68]}, {name: "문전신", star: 1, s: [55,80,72,60,65]}, {name: "삼신할미", star: 1, s: [58,75, 68, 62, 70]}, {name: "철융신", star: 1, s: [52, 78, 65, 64, 66]}, {name: "오방신장", star: 1, s: [54, 76, 66, 62, 68]}
     ],
     "마무리": [
         {name: "용왕", star: 5, s: [65,99,99,95,98]}, {name: "옥황상제", star: 5, s: [62,98,98,97,99]}, {name: "북두칠성", star: 5, s: [60,99,97,98,96]}, {name: "사천왕", star: 5, s: [64,97,99,96,98]},
         {name: "구미호", star: 4, s: [60,95,94,92,93]}, {name: "거구귀", star: 4, s: [58,96,92,91,95]}, {name: "묘두사", star: 4, s: [59,94,95,90,94]}, {name: "불개", star: 4, s: [61,95,93,92,92]},
-        {name: "강철이", star: 3, s: [55,90,88,85,86]}, {name: "창귀", star: 3, s: [60,88,85,84,88]}, {name: "그슨대", star: 3, s: [58,92,82,80,85]}, {name: "노인성", star: 3, s: [55,94,84,82,83]}, {name: "산신", star: 3, s: [58,91,85,86,84]}, {name: "수노궁", star: 3, s: [60,89,86,83,85]},
-        {name: "물귀신", star: 1, s: [50,82,75,68,70]}, {name: "처녀귀신", star: 1, s: [52,80,72,65,68]}, {name: "몽달귀신", star: 1, s: [55,78,70,60,62]}, {name: "달걀신", star: 1, s: [50,75,68,64,66]}, {name: "손각시", star: 1, s: [52,72,65,62,68]}, {name: "야광귀", star: 1, s: [50,74,66,60,65]}
+        {name: "강철이", star: 3, s: [55,90,88,85,86]}, {name: "창귀", star: 3, s: [60,88,85,84,88]}, {name: "그슨대", star: 3, s: [58,92,82, 80, 85]}, 
+        {name: "노인성", star: 2, s: [55, 75, 74, 72, 73]}, {name: "산신", star: 2, s: [58, 72, 75, 71, 70]}, {name: "수노궁", star: 2, s: [60, 74, 71, 73, 72]},
+        {name: "물귀신", star: 1, s: [50,82,75,68,70]}, {name: "처녀귀신", star: 1, s: [52,80,72,65,68]}, {name: "몽달귀신", star: 1, s: [55,78,70,60,62]}, {name: "달걀신", star: 1, s: [50,75, 68, 64, 66]}, {name: "손각시", star: 1, s: [52,72, 65, 62, 68]}, {name: "야광귀", star: 1, s: [50,74, 66, 60, 65]}
     ],
-    "포수": [{name: "백호령", star: 5, s: [90,95,50,99,99]}, {name: "천룡왕", star: 5, s: [88,94,55,98,98]}, {name: "거북선", star: 5, s: [85,96,52,97,99]}, {name: "바위장군", star: 5, s: [92,92,48,99,97]}, {name: "금강신", star: 4, s: [85,92,52,94,92]}, {name: "수문장", star: 4, s: [82,90,58,92,95]}, {name: "철갑귀", star: 4, s: [80,94,50,95,93]}, {name: "옹헤야", star: 4, s: [84,88,55,93,94]}, {name: "탈바가지", star: 3, s: [75,70,50,88,85]}, {name: "장승", star: 3, s: [72,75,45,85,88]}, {name: "솟대", star: 3, s: [78,68,48,90,82]}, {name: "돌하르방", star: 3, s: [70,72,52,82,90]}, {name: "석굴암", star: 3, s: [74,74,50,85,85]}, {name: "갓바위", star: 3, s: [71,71,51,83,83]}, {name: "옹기신", star: 1, s: [60,65,42,75,72]}, {name: "짚신", star: 1, s: [55,55,40,78,65]}, {name: "허수아비", star: 1, s: [58,60,45,70,70]}, {name: "멍석", star: 1, s: [52,58,48,68,68]}, {name: "키걸이", star: 1, s: [50,52,40,65,60]}, {name: "빗자루", star: 1, s: [54,54,44,62,64]}],
-    "1루수": [{name: "박혁거세알", star: 5, s: [98,99,55,90,85]}, {name: "금와왕", star: 5, s: [96,98,60,92,88]}, {name: "수로왕릉", star: 5, s: [95,99,58,91,86]}, {name: "단군성조", star: 5, s: [94,98,62,89,89]}, {name: "천제", star: 4, s: [85,95,50,85,80]}, {name: "대붕", star: 4, s: [82,92,55,82,82]}, {name: "거인족", star: 4, s: [80,94,52,80,84]}, {name: "지리산신", star: 4, s: [84,90,58,88,85]}, {name: "산신령", star: 3, s: [75,85,45,80,78]}, {name: "토지신", star: 3, s: [78,82,40,82,75]}, {name: "가람신", star: 3, s: [72,80,48,78,72]}, {name: "목신", star: 3, s: [70,88,42,75,70]}, {name: "바위신", star: 3, s: [74,84,45,79,79]}, {name: "불신", star: 3, s: [71,81, 41, 76, 76]}, {name: "풀각시", star: 1, s: [60,75, 40,65,60]}, {name: "여우비", star: 1, s: [62,70, 42,62,58]}, {name: "도깨비불", star: 1, s: [58,72, 45, 60, 55]}, {name: "서낭당", star: 1, s: [55,68, 40, 58, 52]}, {name: "당산나무", star: 1, s: [52,65, 38, 55, 50]}, {name: "바람막이", star: 1, s: [50,60, 35, 50, 48]}],
+    "포수": [
+        {name: "백호령", star: 5, s: [90,95,50,99,99]}, {name: "천룡왕", star: 5, s: [88,94,55,98,98]}, {name: "거북선", star: 5, s: [85,96,52,97,99]}, {name: "바위장군", star: 5, s: [92,92,48,99,97]}, 
+        {name: "금강신", star: 4, s: [85,92,52,94,92]}, {name: "수문장", star: 4, s: [82,90,58,92,95]}, {name: "철갑귀", star: 4, s: [80,94,50,95,93]}, {name: "옹헤야", star: 4, s: [84,88,55,93,94]}, 
+        {name: "탈바가지", star: 3, s: [75,70,50,88,85]}, {name: "장승", star: 3, s: [72,75,45,85,88]}, {name: "솟대", star: 3, s: [78,68,48,90,82]}, 
+        {name: "돌하르방", star: 2, s: [70,72, 52, 74, 76]}, {name: "석굴암", star: 2, s: [74,74, 50, 75, 73]}, {name: "갓바위", star: 2, s: [71,71, 51, 73, 72]}, 
+        {name: "옹기신", star: 1, s: [60,65,42,75,72]}, {name: "짚신", star: 1, s: [55,55,40,78,65]}, {name: "허수아비", star: 1, s: [58,60,45,70,70]}, {name: "멍석", star: 1, s: [52,58,48,68,68]}, {name: "키걸이", star: 1, s: [50,52,40,65,60]}, {name: "빗자루", star: 1, s: [54,54,44,62,64]}
+    ],
+    "1루수": [
+        {name: "박혁거세알", star: 5, s: [98,99,55,90,85]}, {name: "금와왕", star: 5, s: [96,98,60,92,88]}, {name: "수로왕릉", star: 5, s: [95,99,55,91,86]}, {name: "단군성조", star: 5, s: [94,98,62,89,89]}, 
+        {name: "천제", star: 4, s: [85,95,50,85,80]}, {name: "대붕", star: 4, s: [82,92,55,82,82]}, {name: "거인족", star: 4, s: [80,94,52,80,84]}, {name: "지리산신", star: 4, s: [84,90,58,88,85]}, 
+        {name: "산신령", star: 3, s: [75,85,45,80,78]}, {name: "토지신", star: 3, s: [78,82,40,82,75]}, {name: "가람신", star: 3, s: [72,80,48,78,72]}, 
+        {name: "목신", star: 2, s: [70,74, 42, 71, 70]}, {name: "바위신", star: 2, s: [74,71, 45, 73, 72]}, {name: "불신", star: 2, s: [71, 73, 41, 70, 71]}, 
+        {name: "풀각시", star: 1, s: [60,75,40,65,60]}, {name: "여우비", star: 1, s: [62,70,42,62,58]}, {name: "도깨비불", star: 1, s: [58,72, 45, 60, 55]}, {name: "서낭당", star: 1, s: [55,68, 40, 58, 52]}, {name: "당산나무", star: 1, s: [52,65, 38, 55, 50]}, {name: "바람막이", star: 1, s: [50,60, 35, 50, 48]}
+    ]
 };
 
+// 나머지 포지션 생성 루프 - 2성 확정 보정 완료 🛠️
 ["2루수", "3루수", "유격수", "좌익수", "중견수", "우익수", "지명타자"].forEach(pos => {
     let names = {
         "2루수": ["축지법", "번개장군", "비형랑", "두두리", "길달", "쾌도", "질풍", "비호", "표운", "대해", "파랑", "거품", "방울", "구슬", "먼지", "티끌", "안개", "이슬", "서리", "눈꽃"],
@@ -131,10 +150,27 @@ const DB = {
     };
     DB[pos] = [];
     for(let i=0; i<20; i++){
-        // 조건 변경: 3성 구간을 줄이고, 2성 구간(3명)을 생성하도록 세분화
-        let star = i<4 ? 5 : i<8 ? 4 : i<11 ? 3 : i<14 ? 2 : 1;
-        let baseS = star === 5 ? 90 : star === 4 ? 82 : star === 3 ? 75 : star === 2 ? 68 : 60;
-        DB[pos].push({ name: names[pos][i], star: star, s: [baseS+Math.random()*10, baseS+Math.random()*10, baseS+Math.random()*10, baseS+Math.random()*10, baseS+Math.random()*10].map(v=>Math.floor(v)) });
+        let star = 1;
+        let baseS = 60;
+        
+        // 🛠️ 가독성과 정확성을 위해 완전 분리식 하드코딩 인덱스 매칭 적용
+        if (i < 4) {        star = 5; baseS = 90; } // 0, 1, 2, 3 (4명)
+        else if (i < 8) {   star = 4; baseS = 82; } // 4, 5, 6, 7 (4명)
+        else if (i < 11) {  star = 3; baseS = 74; } // 8, 9, 10 (3명)
+        else if (i < 14) {  star = 2; baseS = 68; } // 11, 12, 13 (3명) -> 확정 생성 보장!
+        else {              star = 1; baseS = 58; } // 나머지 6명
+        
+        DB[pos].push({ 
+            name: names[pos][i], 
+            star: star, 
+            s: [
+                Math.floor(baseS + Math.random() * 8), 
+                Math.floor(baseS + Math.random() * 8), 
+                Math.floor(baseS + Math.random() * 8), 
+                Math.floor(baseS + Math.random() * 8), 
+                Math.floor(baseS + Math.random() * 8)
+            ] 
+        });
     }
 });
 
@@ -176,13 +212,9 @@ const CONCEPTS = [
         let players = Object.values(l);
         if(players.length < 12) return false;
         
-        // 1. 1성 또는 2성 선수 숫자 카운트
         let lowStarCount = players.filter(p => p.star <= 2).length;
-        
-        // 2. 팀 평균 능력치 계산
         let avg = players.reduce((acc, p) => acc + (p.s.reduce((a,b)=>a+b)/5), 0) / 12;
         
-        // 3. 조건: 저성급 6명 이상 AND 평균 70점 이상
         return lowStarCount >= 6 && avg >= 70;
     }}
 ];
@@ -289,19 +321,17 @@ function finishGame() {
     resScreen.style.display = 'flex';
     resScreen.style.overflowY = 'auto';
 
-    // 점수 계산 산식
     let totalStat = 0;
     Object.values(lineup).forEach(p => { totalStat += (p.s.reduce((a,b)=>a+b)/5); });
     let physicalScore = (totalStat / 12) * 0.5; 
     let activeSyns = SYNERGIES.filter(s => s.check(lineup));
-    let synBonus = activeSyns.reduce((a,b)=>a+b.score, 0) * 1.5; // 가산치 조정
+    let synBonus = activeSyns.reduce((a,b)=>a+b.score, 0) * 1.5; 
     let activeConcepts = CONCEPTS.filter(c => c.check(lineup));
-    let conceptBonus = activeConcepts.length * 15; // 개당 15점
+    let conceptBonus = activeConcepts.length * 15; 
     let budgetBonus = (40 - currentCost) * 1.2;
 
     let final = (physicalScore + synBonus + conceptBonus + budgetBonus).toFixed(1);
 
-    // 최종 로스터 UI 생성
     let lineupHTML = `<div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:8px; margin: 15px 0; background:rgba(255,255,255,0.05); padding:12px; border-radius:8px; width:100%; max-width:550px;">`;
     SCOUT_ORDER.forEach(pos => {
         const p = lineup[pos];
@@ -314,7 +344,6 @@ function finishGame() {
     });
     lineupHTML += `</div>`;
     
-    // 3. 결과 출력
     let rank = "", desc = "";
     if (final >= 175) {        rank = "S"; desc = "역사에 남을 '드림팀'입니다! 완벽한 시너지와 컨셉, 압도적인 피지컬까지 갖춘 이 팀은 전무후무한 기록을 세울 것입니다."; }
     else if (final >= 155) { rank = "A"; desc = "강력한 우승 후보입니다. 선수들 간의 조화가 뛰어나며, 단장님의 뛰어난 안목이 돋보이는 명문 구단의 탄생입니다."; }
