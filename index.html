@@ -327,7 +327,7 @@ function finishGame() {
     let activeSyns = SYNERGIES.filter(s => s.check(lineup));
     let synBonus = activeSyns.reduce((a,b)=>a+b.score, 0) * 1.5; 
     let activeConcepts = CONCEPTS.filter(c => c.check(lineup));
-    let conceptBonus = activeConcepts.length * 15; 
+    let conceptBonus = activeConcepts.length * 16; 
     let budgetBonus = (40 - currentCost) * 1.2;
 
     let final = (physicalScore + synBonus + conceptBonus + budgetBonus).toFixed(1);
